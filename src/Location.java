@@ -13,7 +13,6 @@ public class Location {
     public int getX() {
         return x;
     }
-
     public int getY() {
         return y;
     }
