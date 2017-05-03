@@ -32,6 +32,14 @@ public class Gridworld {
         board[mygoal.getX()][mygoal.getY()].setRewardval(1);
     }
 
+    public float getGammaDF() { return  gammaDF; }
+
+    public void setGammaDF(float gammaDF) { this.gammaDF = gammaDF; }
+
+    public void setLambda(float lambda) { this.lambda = lambda; }
+
+    public void setAlpha(float alpha) { this.alpha = alpha; }
+
     public void printBoard() {
         for (int i = 0; i < board.length; i++) {
             for (int j = 0; j < board[0].length; j++) {
@@ -41,7 +49,42 @@ public class Gridworld {
                     System.out.print("X ");
                 }
                 else {
+
                     System.out.print(board[i][j].getDirType());
+                }
+            }
+            System.out.println();
+        }
+        System.out.println("MY LOCA (" + mylocation.getX() + "," + mylocation.getY() + ")");
+        System.out.println("MY GOAL (" + mygoal.getX() + "," + mygoal.getY() + ")");
+        System.out.println();
+    }
+
+    public void printBoardArrows() {
+        for (int i = 0; i < board.length; i++) {
+            for (int j = 0; j < board[0].length; j++) {
+                if ((i == mylocation.getX()) && (j == mylocation.getY()))
+                    System.out.print("O ");
+                else if ((i == mygoal.getX()) && (j == mygoal.getY())) {
+                    System.out.print("X ");
+                }
+                else {
+                    switch (board[i][j].getDirType()) {
+                        case UP:
+                            System.out.print("U ");
+                            break;
+                        case DOWN:
+                            System.out.print("D ");
+                            break;
+                        case LEFT:
+                            System.out.print("L ");
+                            break;
+                        case RIGHT:
+                            System.out.print("R ");
+                            break;
+                        default:
+                            throw new IllegalArgumentException("You shouldn't see this, ever");
+                    }
                 }
             }
             System.out.println();
@@ -79,7 +122,22 @@ public class Gridworld {
         mygoal.setY(col);
     }
 
-    public boolean onTarget() {
+    private void stochasticRestart() {
+        // can't use this code in startMyLocation
+        // because goal's x,y isn't initialized yet so
+        // would result nullpointer exception
+        Random r = new Random();
+        int row = r.nextInt(board.length);
+        int col = r.nextInt(board[0].length);
+        while (row == mygoal.getX() && col == mygoal.getY()) {
+            row = r.nextInt(board.length);
+            col = r.nextInt(board[0].length);
+        }
+        mylocation.setX(row);
+        mylocation.setY(col);
+    }
+
+    private boolean onTarget() {
         if (mylocation.getX() == mygoal.getX() && mylocation.getY() == mygoal.getY()) {
 //            System.out.println("Found at location (" + mylocation.getX() + "," + mylocation.getY() + ")");
             return true;
@@ -87,13 +145,13 @@ public class Gridworld {
         return false;
     }
 
-    public Square.DirType explore() {
+    private Square.DirType explore() {
         Random r = new Random();
         int move = r.nextInt(Square.DirType.values().length);
         return Square.DirType.values()[move];   // next move
     }
 
-    public Square.DirType exploit() {
+    private Square.DirType exploit() {
         float max = -100f;
         int idx = 0;
 
@@ -204,13 +262,23 @@ public class Gridworld {
         return Square.DirType.values()[idx];
     }
 
+    private void resetEligibility() {
+        for (int i = 0; i < board.length; i++) {
+            for (int j = 0; j < board[0].length; j++) {
+                for (int k = 0; k < 4; k++) {
+                    board[i][j].getEleg()[k] = 0;
+                }
+            }
+        }
+    }
 
     public void takeAction() {
         Random r = new Random();
         float tmp = (r.nextInt(100) + 1) / 100f;
-        Square.DirType nextMove_qsa = (tmp < gammaDF) ? exploit() : explore();
+        Square.DirType nextMove_qsa = (tmp < gammaDF) ? explore() : exploit();
 
         // Q(s,a) and next move for Q(s,a) is above
+//        printMyLocation();
         Square qsa = board[mylocation.getX()][mylocation.getY()];
         float max_qsa = maxOfSquare(qsa);
 
@@ -248,7 +316,7 @@ public class Gridworld {
                     throw new IllegalArgumentException("You shouldn't be seeing this, ever");
             }
         }
-        catch (NullPointerException|IllegalArgumentException e) {
+        catch (ArrayIndexOutOfBoundsException e) {
             max_qsaP = 0;
             reward = -1;
         }
@@ -270,23 +338,90 @@ public class Gridworld {
             }
         }
 
+        // s <- s' ; a <- a'
+//        System.out.println("Moving in Direction " + nextMove_qsa);
+        switch (nextMove_qsa) {
+            case UP:
+                mylocation.setX(mylocation.getX() - 1);
+                break;
+            case DOWN:
+                mylocation.setX(mylocation.getX() + 1);
+                break;
+            case LEFT:
+                mylocation.setY(mylocation.getY() - 1);
+                break;
+            case RIGHT:
+                mylocation.setY(mylocation.getY() + 1);
+                break;
+            default:
+                throw new IllegalArgumentException("You shouldn't see this. ever");
+        }
 
+        if (mylocation.getX() < 0
+                || mylocation.getX() >= board.length
+                || mylocation.getY() < 0
+                || mylocation.getY() >= board[0].length)
+                {
+//            System.out.println("You ventured out of bounds");
+//            System.out.println("Location reset");
+            stochasticRestart();
+            resetEligibility();
+            gammaDF -= lambda;
+            // end of episode
+        }
 
-
+        // agent moved, check if found goal
+        if (onTarget()) {
+//            System.out.println("Location reset");
+            stochasticRestart();
+            resetEligibility();
+            gammaDF -= lambda;
+            // end of episode
+        }
 
     }
 
 
+    public void applyArrows() {
+        for (int i = 0; i < board.length; i++) {
+            for (int j = 0; j < board[0].length; j++) {
+                for (int k = 0; k < 4; k++) {
+                    Square.DirType dirType = nextMoveBasedonMaxofSquare(board[i][j]);
+                    switch (dirType) {
+                        case UP:
+                            board[i][j].setDirType(Square.DirType.UP);
+                            break;
+                        case DOWN:
+                            board[i][j].setDirType(Square.DirType.DOWN);
+                            break;
+                        case LEFT:
+                            board[i][j].setDirType(Square.DirType.LEFT);
+                            break;
+                        case RIGHT:
+                            board[i][j].setDirType(Square.DirType.RIGHT);
+                            break;
+                        default:
+                            throw new IllegalArgumentException("You should not see this, ever");
+                    }
+                }
+            }
+        }
+    }
 
     public static void main(String[] args) {
-        Gridworld g = new Gridworld(3, 3);
-        g.printBoard();
-        g.printSquare(2, 2);
-        Square.DirType dirType = Square.DirType.LEFT;
-        System.out.println(dirType.ordinal());
+        Gridworld g = new Gridworld(20, 20);
 
+        g.applyArrows();
+        g.printBoardArrows();
+        System.out.println();
+        long x = 0;
+        while (g.getGammaDF() > .05) {
+            g.takeAction();
+            x++;
+        }
+        g.applyArrows();
+        g.printBoardArrows();
+        System.out.println("Episodes: " + x);
     }
-
 }
-
 
