@@ -1,5 +1,6 @@
 
 public class Square {
+
     public enum DirType { UP, DOWN, LEFT, RIGHT }
     private DirType dirType;
     private float [] weights = new float[4];
@@ -8,45 +9,22 @@ public class Square {
     private int id;
 
 
-    public float[] getWeights() {
-        return weights;
-    }
+    public int getId() { return id; }
 
-    public void setWeights(float[] weights) {
-        this.weights = weights;
-    }
+    public void setId(int id) { this.id = id; }
+
+    public int getRewardval() { return rewardval; }
+
+    public void setRewardval(int rewardval) { this.rewardval = rewardval; }
+
+    public float[] getWeights() { return weights; }
 
     public float[] getEleg() {
         return eleg;
     }
 
-    public void setEleg(float[] eleg) {
-        this.eleg = eleg;
-    }
+    public DirType getDirType() { return dirType; }
 
-    public int getRewardval() {
-        return rewardval;
-    }
-
-    public void setRewardval(int rewardval) {
-        this.rewardval = rewardval;
-    }
-
-    public DirType getDirType() {
-        return dirType;
-    }
-
-    public void setDirType(DirType dirType) {
-        this.dirType = dirType;
-    }
-
-    public int getId() {
-        return id;
-    }
-
-    public void setId(int id) {
-        this.id = id;
-    }
-
+    public void setDirType(DirType dirType) { this.dirType = dirType; }
 
 }
