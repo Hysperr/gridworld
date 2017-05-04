@@ -222,9 +222,7 @@ public class Gridworld {
 
     }   // end takeAction()
 
-    private void applyArrow(Square s) {
-        s.setDirType(exploit(s));
-    }
+    private void applyArrow(Square s) { s.setDirType(exploit(s)); }
 
     public void printBoard() {
         for (int i = 0; i < board.length; i++) {
@@ -272,7 +270,7 @@ public class Gridworld {
     public void printSquare(int x, int y) {
         Square s = board[x][y];
         System.out.println("Location: (" + x + "," + y + ")" + "\n" +
-                "Square ID: " + s.getId() + "\nDir: " + s.getDirType() + "\n" +
+                "Square ID: " + s.getId() + "\nObstacle: " + s.isObstacle() + "\nDir: " + s.getDirType() + "\n" +
                 "Reward val " + s.getRewardval() + "\nWeights " + Arrays.toString(s.getWeights()) + "\n" +
                 "Eligibility val " + Arrays.toString(s.getEleg()));
     }
@@ -282,7 +280,7 @@ public class Gridworld {
         for (int i = 0; i < board.length; i++) {
             for (int j = 0; j < board[0].length; j++) {
                 if ((i != mylocation.getX() && j != mylocation.getY()) && (i != mygoal.getX() && j != mygoal.getY())) {
-                    chance = r.nextInt(5);  // 1 in 5 chance, [0-4] generated
+                    chance = r.nextInt(4);  // 1 in 5 chance, [0-4] generated
                     if (chance == 0) {
                         board[i][j].setObstacle(true);
                         board[i][j].setRewardval(-1);
@@ -304,7 +302,7 @@ public class Gridworld {
     }
 
     public static void main(String[] args) {
-        Gridworld g = new Gridworld(10, 10, true);
+        Gridworld g = new Gridworld(10, 10, false);
 
         g.printBoard();
         System.out.println();
