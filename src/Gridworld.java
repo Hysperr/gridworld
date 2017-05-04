@@ -16,7 +16,7 @@ public class Gridworld {
      * @param rowSize
      * @param colSize
      */
-    public Gridworld(int rowSize, int colSize) {
+    public Gridworld(int rowSize, int colSize, boolean addObstacles) {
         int counter = 0;
         Random r = new Random();
         board = new Square[rowSize][colSize];
@@ -32,6 +32,7 @@ public class Gridworld {
                 }
             }
         }
+        if (addObstacles) generateObstacles();
         mygoal = new Location(); startMyGoal();
         board[mygoal.getX()][mygoal.getY()].setRewardval(1);
         mylocation = new Location(); startMyLocation();
@@ -43,7 +44,8 @@ public class Gridworld {
         Random r = new Random();
         int row = r.nextInt(board.length);
         int col = r.nextInt(board[0].length);
-        while (row == mygoal.getX() && col == mygoal.getY()) {
+        // don't put your location on a goal nor obstacle
+        while ((row == mygoal.getX() && col == mygoal.getY()) || (board[row][col].isObstacle())) {
             row = r.nextInt(board.length);
             col = r.nextInt(board[0].length);
         }
@@ -55,6 +57,11 @@ public class Gridworld {
         Random r = new Random();
         int row = r.nextInt(board.length);
         int col = r.nextInt(board[0].length);
+        // don't put your goal on an obstacle
+        while (board[row][col].isObstacle()) {
+            row = r.nextInt(board.length);
+            col = r.nextInt(board[0].length);
+        }
         mygoal.setX(row);
         mygoal.setY(col);
     }
@@ -96,11 +103,10 @@ public class Gridworld {
         float[] farr = {upVal, downVal, leftVal, rightVal};
 
         float max = -100f;
-        for (float tmp : farr) {
-            if (tmp > max) {
+        for (float tmp : farr)
+            if (tmp > max)
                 max = tmp;
-            }
-        }
+
         return max;
     }
 
@@ -137,7 +143,7 @@ public class Gridworld {
         Square.DirType nextMove_qsa = (tmp < gammaDF) ? explore() : exploit(qsa);
 
         // Gather reward in s' and gather Q(s'a')
-        int reward; float max_qsaP; Square qsaP;
+        int reward = -1; float max_qsaP = 0; Square qsaP;
         try {
             switch (nextMove_qsa) {
                 case UP:
@@ -165,9 +171,14 @@ public class Gridworld {
             }
         }
         catch (ArrayIndexOutOfBoundsException e) {
-            // you attempted Q(s'a') out-of-bounds
-            max_qsaP = 0;
-            reward = -1;
+             /*
+             you attempted Q(s'a') out-of-bounds.
+             max_qsaP & reward are already
+             initialized to invalid values.
+             out-of-bounds & obstacles are thought
+             of as same thing. so only valid moves
+             will change max_qsaP & reward
+             */
         }
 
         // delta = r  + gamma * Q(s'a') - Q(s,a)
@@ -207,7 +218,7 @@ public class Gridworld {
         }
 
         // check end of episode - out of bounds
-        if (mylocation.getX() < 0 || mylocation.getX() >= board.length || mylocation.getY() < 0 || mylocation.getY() >= board[0].length) {
+        if (onObstacle() || mylocation.getX() < 0 || mylocation.getX() >= board.length || mylocation.getY() < 0 || mylocation.getY() >= board[0].length) {
             startMyLocation();
             resetEligibility();
             gammaDF -= lambda;
@@ -230,10 +241,12 @@ public class Gridworld {
         for (int i = 0; i < board.length; i++) {
             for (int j = 0; j < board[0].length; j++) {
                 applyArrow(board[i][j]);
-                if ((i == mylocation.getX()) && (j == mylocation.getY()))
+                if (i == mylocation.getX() && j == mylocation.getY())
                     System.out.print("O ");
-                else if ((i == mygoal.getX()) && (j == mygoal.getY()))
+                else if (i == mygoal.getX() && j == mygoal.getY())
                     System.out.print("X ");
+                else if (board[i][j].isObstacle())
+                    System.out.print("# ");
                 else {
                     switch (board[i][j].getDirType()) {
                         case UP:
@@ -275,8 +288,28 @@ public class Gridworld {
                 "Eligibility val " + Arrays.toString(s.getEleg()));
     }
 
+    public void generateObstacles() {
+        Random r = new Random(); int chance;
+        for (int i = 0; i < board.length; i++) {
+            for (int j = 0; j < board[0].length; j++) {
+                chance = r.nextInt(6);  // 1 in 5 chance, [0-4] generated
+                if (chance == 0) board[i][j].setObstacle(true);
+                else board[i][j].setObstacle(false);
+            }
+        }
+    }
+
+    private boolean onObstacle() {
+        try {
+            return board[mylocation.getX()][mylocation.getY()].isObstacle();
+        }
+        catch (ArrayIndexOutOfBoundsException e) {
+            return true;
+        }
+    }
+
     public static void main(String[] args) {
-        Gridworld g = new Gridworld(15, 15);
+        Gridworld g = new Gridworld(11, 11, true);
 
         g.printBoard();
         System.out.println();
