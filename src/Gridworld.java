@@ -32,10 +32,10 @@ public class Gridworld {
                 }
             }
         }
-        if (addObstacles) generateObstacles();
         mygoal = new Location(); startMyGoal();
         board[mygoal.getX()][mygoal.getY()].setRewardval(1);
         mylocation = new Location(); startMyLocation();
+        if (addObstacles) generateObstacles();
     }
 
     public float getGammaDF() { return  gammaDF; }
@@ -44,8 +44,7 @@ public class Gridworld {
         Random r = new Random();
         int row = r.nextInt(board.length);
         int col = r.nextInt(board[0].length);
-        // don't put your location on a goal nor obstacle
-        while ((row == mygoal.getX() && col == mygoal.getY()) || (board[row][col].isObstacle())) {
+        while ((row == mygoal.getX() && col == mygoal.getY()) || board[row][col].isObstacle()) {
             row = r.nextInt(board.length);
             col = r.nextInt(board[0].length);
         }
@@ -57,11 +56,6 @@ public class Gridworld {
         Random r = new Random();
         int row = r.nextInt(board.length);
         int col = r.nextInt(board[0].length);
-        // don't put your goal on an obstacle
-        while (board[row][col].isObstacle()) {
-            row = r.nextInt(board.length);
-            col = r.nextInt(board[0].length);
-        }
         mygoal.setX(row);
         mygoal.setY(col);
     }
@@ -143,7 +137,7 @@ public class Gridworld {
         Square.DirType nextMove_qsa = (tmp < gammaDF) ? explore() : exploit(qsa);
 
         // Gather reward in s' and gather Q(s'a')
-        int reward = -1; float max_qsaP = 0; Square qsaP;
+        int reward; float max_qsaP; Square qsaP;
         try {
             switch (nextMove_qsa) {
                 case UP:
@@ -171,14 +165,9 @@ public class Gridworld {
             }
         }
         catch (ArrayIndexOutOfBoundsException e) {
-             /*
-             you attempted Q(s'a') out-of-bounds.
-             max_qsaP & reward are already
-             initialized to invalid values.
-             out-of-bounds & obstacles are thought
-             of as same thing. so only valid moves
-             will change max_qsaP & reward
-             */
+            // you attempted Q(s'a') out-of-bounds
+            reward = -1;
+            max_qsaP = 0;
         }
 
         // delta = r  + gamma * Q(s'a') - Q(s,a)
@@ -292,9 +281,15 @@ public class Gridworld {
         Random r = new Random(); int chance;
         for (int i = 0; i < board.length; i++) {
             for (int j = 0; j < board[0].length; j++) {
-                chance = r.nextInt(6);  // 1 in 5 chance, [0-4] generated
-                if (chance == 0) board[i][j].setObstacle(true);
-                else board[i][j].setObstacle(false);
+                if ((i != mylocation.getX() && j != mylocation.getY()) && (i != mygoal.getX() && j != mygoal.getY())) {
+                    chance = r.nextInt(5);  // 1 in 5 chance, [0-4] generated
+                    if (chance == 0) {
+                        board[i][j].setObstacle(true);
+                        board[i][j].setRewardval(-1);
+                        Arrays.fill(board[i][j].getWeights(), 0);
+                    }
+                    else board[i][j].setObstacle(false);
+                }
             }
         }
     }
@@ -309,7 +304,7 @@ public class Gridworld {
     }
 
     public static void main(String[] args) {
-        Gridworld g = new Gridworld(11, 11, true);
+        Gridworld g = new Gridworld(10, 10, true);
 
         g.printBoard();
         System.out.println();
