@@ -1,0 +1,35 @@
+D U D D R D U U D D 
+D D D R R L D R R R 
+U D R L D L R X U R 
+U R L R D U L U L U 
+D R L L D O L D D U 
+L R D U U D D L R R 
+U U R R U R R U D U 
+D L D L D D L L D D 
+R U D D U D R L R D 
+D L U L U L R R U R 
+MY LOCA - O (4,5)
+MY GOAL - X (2,7)
+
+
+D R D D D D D D D L 
+R O R R D R D D D L 
+R R R R R R R X L L 
+U R R U U R R U L L 
+R U U U R R U U U L 
+R U U U R U R U U L 
+R R R U U U U U U L 
+R R U U U U U U U L 
+R U R U U U R U L U 
+U U U U U U R U U U 
+MY LOCA - O (1,1)
+MY GOAL - X (2,7)
+
+Episodes: 22609723
+Location: (0,1)		// sample square (0,1)
+Square ID: 2
+Obstacle: false
+Dir: RIGHT
+Reward val 0
+Weights [-51.330166, 4.3620524E-8, -2.2892077, 4.3739696E-8]
+Eligibility val [0.0, 0.0, 0.0, 0.0]
