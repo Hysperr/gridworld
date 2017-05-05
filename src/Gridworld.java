@@ -39,6 +39,11 @@ public class Gridworld {
     }
 
     public float getGammaDF() { return  gammaDF; }
+    public int getWidthofBoard() { return board[0].length; }
+    public int getHeightofBoard() { return board.length; }
+    public Square[][] getBoard() { return board; }
+    public Location getMylocation() { return mylocation; }
+    public Location getMygoal() { return mygoal; }
 
     private void startMyLocation() {
         Random r = new Random();
@@ -224,10 +229,18 @@ public class Gridworld {
 
     private void applyArrow(Square s) { s.setDirType(exploit(s)); }
 
-    public void printBoard() {
+    public void applyArrows() {
         for (int i = 0; i < board.length; i++) {
             for (int j = 0; j < board[0].length; j++) {
                 applyArrow(board[i][j]);
+            }
+        }
+    }
+
+    public void printBoard() {
+        for (int i = 0; i < board.length; i++) {
+            for (int j = 0; j < board[0].length; j++) {
+//                applyArrow(board[i][j]);  // remove for future flexibility & less confusion
                 if (i == mylocation.getX() && j == mylocation.getY())
                     System.out.print("O ");
                 else if (i == mygoal.getX() && j == mygoal.getY())
@@ -302,8 +315,15 @@ public class Gridworld {
     }
 
     public static void main(String[] args) {
-        Gridworld g = new Gridworld(10, 10, false);
 
+        int rowSize = 10;
+        int colSize = 10;
+
+        /** Specify whether to add randomly generated obstacles. False = no obstacles, True = obstacles */
+
+        Gridworld g = new Gridworld(rowSize, colSize, false);
+
+        g.applyArrows();        // must call this before printing board to set arrows!
         g.printBoard();
         System.out.println();
         long x = 0;
@@ -311,6 +331,7 @@ public class Gridworld {
             g.takeAction();
             x++;
         }
+        g.applyArrows();
         g.printBoard();
         System.out.println("Episodes: " + x);
 
