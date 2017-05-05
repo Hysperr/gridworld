@@ -5,6 +5,7 @@ public class Square {
     private DirType dirType;
     private float [] weights = new float[4];
     private float [] eleg = new float[4];
+    private boolean isObstacle;
     private int rewardval;
     private int id;
 
@@ -15,13 +16,15 @@ public class Square {
 
     public int getRewardval() { return rewardval; }
 
+    public boolean isObstacle() { return isObstacle; }
+
+    public void setObstacle(boolean obstacle) { isObstacle = obstacle; }
+
     public void setRewardval(int rewardval) { this.rewardval = rewardval; }
 
     public float[] getWeights() { return weights; }
 
-    public float[] getEleg() {
-        return eleg;
-    }
+    public float[] getEleg() { return eleg; }
 
     public DirType getDirType() { return dirType; }
 

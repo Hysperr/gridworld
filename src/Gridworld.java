@@ -16,7 +16,7 @@ public class Gridworld {
      * @param rowSize
      * @param colSize
      */
-    public Gridworld(int rowSize, int colSize) {
+    public Gridworld(int rowSize, int colSize, boolean addObstacles) {
         int counter = 0;
         Random r = new Random();
         board = new Square[rowSize][colSize];
@@ -35,15 +35,21 @@ public class Gridworld {
         mygoal = new Location(); startMyGoal();
         board[mygoal.getX()][mygoal.getY()].setRewardval(1);
         mylocation = new Location(); startMyLocation();
+        if (addObstacles) generateObstacles();
     }
 
     public float getGammaDF() { return  gammaDF; }
+    public int getWidthofBoard() { return board[0].length; }
+    public int getHeightofBoard() { return board.length; }
+    public Square[][] getBoard() { return board; }
+    public Location getMylocation() { return mylocation; }
+    public Location getMygoal() { return mygoal; }
 
     private void startMyLocation() {
         Random r = new Random();
         int row = r.nextInt(board.length);
         int col = r.nextInt(board[0].length);
-        while (row == mygoal.getX() && col == mygoal.getY()) {
+        while ((row == mygoal.getX() && col == mygoal.getY()) || board[row][col].isObstacle()) {
             row = r.nextInt(board.length);
             col = r.nextInt(board[0].length);
         }
@@ -96,11 +102,10 @@ public class Gridworld {
         float[] farr = {upVal, downVal, leftVal, rightVal};
 
         float max = -100f;
-        for (float tmp : farr) {
-            if (tmp > max) {
+        for (float tmp : farr)
+            if (tmp > max)
                 max = tmp;
-            }
-        }
+
         return max;
     }
 
@@ -166,8 +171,8 @@ public class Gridworld {
         }
         catch (ArrayIndexOutOfBoundsException e) {
             // you attempted Q(s'a') out-of-bounds
-            max_qsaP = 0;
             reward = -1;
+            max_qsaP = 0;
         }
 
         // delta = r  + gamma * Q(s'a') - Q(s,a)
@@ -207,7 +212,7 @@ public class Gridworld {
         }
 
         // check end of episode - out of bounds
-        if (mylocation.getX() < 0 || mylocation.getX() >= board.length || mylocation.getY() < 0 || mylocation.getY() >= board[0].length) {
+        if (onObstacle() || mylocation.getX() < 0 || mylocation.getX() >= board.length || mylocation.getY() < 0 || mylocation.getY() >= board[0].length) {
             startMyLocation();
             resetEligibility();
             gammaDF -= lambda;
@@ -222,18 +227,26 @@ public class Gridworld {
 
     }   // end takeAction()
 
-    private void applyArrow(Square s) {
-        s.setDirType(exploit(s));
+    private void applyArrow(Square s) { s.setDirType(exploit(s)); }
+
+    public void applyArrows() {
+        for (int i = 0; i < board.length; i++) {
+            for (int j = 0; j < board[0].length; j++) {
+                applyArrow(board[i][j]);
+            }
+        }
     }
 
     public void printBoard() {
         for (int i = 0; i < board.length; i++) {
             for (int j = 0; j < board[0].length; j++) {
-                applyArrow(board[i][j]);
-                if ((i == mylocation.getX()) && (j == mylocation.getY()))
+//                applyArrow(board[i][j]);  // remove for future flexibility & less confusion
+                if (i == mylocation.getX() && j == mylocation.getY())
                     System.out.print("O ");
-                else if ((i == mygoal.getX()) && (j == mygoal.getY()))
+                else if (i == mygoal.getX() && j == mygoal.getY())
                     System.out.print("X ");
+                else if (board[i][j].isObstacle())
+                    System.out.print("# ");
                 else {
                     switch (board[i][j].getDirType()) {
                         case UP:
@@ -270,14 +283,47 @@ public class Gridworld {
     public void printSquare(int x, int y) {
         Square s = board[x][y];
         System.out.println("Location: (" + x + "," + y + ")" + "\n" +
-                "Square ID: " + s.getId() + "\nDir: " + s.getDirType() + "\n" +
+                "Square ID: " + s.getId() + "\nObstacle: " + s.isObstacle() + "\nDir: " + s.getDirType() + "\n" +
                 "Reward val " + s.getRewardval() + "\nWeights " + Arrays.toString(s.getWeights()) + "\n" +
                 "Eligibility val " + Arrays.toString(s.getEleg()));
     }
 
-    public static void main(String[] args) {
-        Gridworld g = new Gridworld(15, 15);
+    public void generateObstacles() {
+        Random r = new Random(); int chance;
+        for (int i = 0; i < board.length; i++) {
+            for (int j = 0; j < board[0].length; j++) {
+                if ((i != mylocation.getX() && j != mylocation.getY()) && (i != mygoal.getX() && j != mygoal.getY())) {
+                    chance = r.nextInt(4);  // 1 in 5 chance, [0-4] generated
+                    if (chance == 0) {
+                        board[i][j].setObstacle(true);
+                        board[i][j].setRewardval(-1);
+                        Arrays.fill(board[i][j].getWeights(), 0);
+                    }
+                    else board[i][j].setObstacle(false);
+                }
+            }
+        }
+    }
 
+    private boolean onObstacle() {
+        try {
+            return board[mylocation.getX()][mylocation.getY()].isObstacle();
+        }
+        catch (ArrayIndexOutOfBoundsException e) {
+            return true;
+        }
+    }
+
+    public static void main(String[] args) {
+
+        int rowSize = 10;
+        int colSize = 10;
+
+        /** Specify whether to add randomly generated obstacles. False = no obstacles, True = obstacles */
+
+        Gridworld g = new Gridworld(rowSize, colSize, false);
+
+        g.applyArrows();        // must call this before printing board to set arrows!
         g.printBoard();
         System.out.println();
         long x = 0;
@@ -285,6 +331,7 @@ public class Gridworld {
             g.takeAction();
             x++;
         }
+        g.applyArrows();
         g.printBoard();
         System.out.println("Episodes: " + x);
 
