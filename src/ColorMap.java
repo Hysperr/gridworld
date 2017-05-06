@@ -15,7 +15,7 @@ public class ColorMap extends Application {
         else {
             switch (s.getDirType()) {
                 case UP:
-                    p.setStyle("-fx-background-color: green");
+                    p.setStyle("-fx-background-color: #17ab48");
                     p.getChildren().add(new Label(s.getDirType().toString()));
                     return;
                 case DOWN:
@@ -89,31 +89,22 @@ public class ColorMap extends Application {
 
         /** Specify whether to add randomly generated obstacles. False = no obstacles, True = obstacles */
 
-        int rowSize = 25;
-        int colSize = 25;
+        int rowSize = 10;
+        int colSize = 10;
 
-        Gridworld gWorld = new Gridworld(rowSize, colSize, true);
+        Gridworld g = new Gridworld(rowSize, colSize, true);
 
-        gWorld.applyArrows();
-        GridPane gridPane = generateColorMap(gWorld);
+        g.applyArrows();
+        GridPane gridPane = generateColorMap(g);
         primaryStage.setScene(new Scene(gridPane, 800, 800));
         primaryStage.setTitle("ColorMap - BEFORE");
         primaryStage.show();
 
 
-        gWorld.printBoard();
-        System.out.println();
-        long x = 0;
-        while (gWorld.getGammaDF() > .05) {
-            gWorld.takeAction();
-            x++;
-        }
-        gWorld.applyArrows();               // call this before printing board to set arrows!
-        gWorld.printBoard();
-        System.out.println("Episodes: " + x);
+        g = Gridworld.startGridworld(g);
 
 
-        gridPane = generateColorMap(gWorld);
+        gridPane = generateColorMap(g);
         Stage secondStage = new Stage();
         secondStage.setScene(new Scene(gridPane, 800, 800));
         secondStage.setTitle("ColorMap - AFTER");

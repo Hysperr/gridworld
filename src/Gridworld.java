@@ -6,9 +6,12 @@ public class Gridworld {
     private Square[][] board;
     private Location mylocation;
     private Location mygoal;
-    private float gammaDF = 0.9f;
-    private float lambda = 0.0000005f;
+    private boolean obstaclesActive;
+
     private float alpha = 0.005f;
+    private float gammaDF = 0.90f;              // if > .90 explore more early on, useful on larger grids
+    private float lambda = 0.0000005f;          // faster / less accuracy on larger grids
+    // private float lambda = 0.00000005f;      // slower / more accuracy on larger grids
 
 
     /**
@@ -35,12 +38,14 @@ public class Gridworld {
         mygoal = new Location(); startMyGoal();
         board[mygoal.getX()][mygoal.getY()].setRewardval(1);
         mylocation = new Location(); startMyLocation();
+        obstaclesActive = addObstacles;
         if (addObstacles) generateObstacles();
     }
 
     public float getGammaDF() { return  gammaDF; }
     public int getWidthofBoard() { return board[0].length; }
     public int getHeightofBoard() { return board.length; }
+    public boolean isObstaclesActive() { return obstaclesActive; }
     public Square[][] getBoard() { return board; }
     public Location getMylocation() { return mylocation; }
     public Location getMygoal() { return mygoal; }
@@ -134,7 +139,7 @@ public class Gridworld {
         }
     }
 
-    public void takeAction() {
+    public int takeAction() {
         // Gather Q(s,a) and gather 'a'
         Random r = new Random(); float tmp = (r.nextInt(100) + 1) / 100f;
         Square qsa = board[mylocation.getX()][mylocation.getY()];
@@ -211,11 +216,12 @@ public class Gridworld {
                 throw new IllegalArgumentException();
         }
 
-        // check end of episode - out of bounds
+        // check end of episode - out of bounds or on obstacle
         if (onObstacle() || mylocation.getX() < 0 || mylocation.getX() >= board.length || mylocation.getY() < 0 || mylocation.getY() >= board[0].length) {
             startMyLocation();
             resetEligibility();
             gammaDF -= lambda;
+            return 1;
         }
 
         // check end of episode - on target goal
@@ -223,7 +229,10 @@ public class Gridworld {
             startMyLocation();
             resetEligibility();
             gammaDF -= lambda;
+            return 1;
         }
+
+        return 0;
 
     }   // end takeAction()
 
@@ -240,7 +249,6 @@ public class Gridworld {
     public void printBoard() {
         for (int i = 0; i < board.length; i++) {
             for (int j = 0; j < board[0].length; j++) {
-//                applyArrow(board[i][j]);  // remove for future flexibility & less confusion
                 if (i == mylocation.getX() && j == mylocation.getY())
                     System.out.print("O ");
                 else if (i == mygoal.getX() && j == mygoal.getY())
@@ -268,27 +276,29 @@ public class Gridworld {
             }
             System.out.println();
         }
-        System.out.println("MY LOCA - O (" + mylocation.getX() + "," + mylocation.getY() + ")");
-        System.out.println("MY GOAL - X (" + mygoal.getX() + "," + mygoal.getY() + ")");
+        System.out.println();
+        printMyLocation();
+        printGoalLocation();
         System.out.println();
     }
 
     public void printMyLocation() {
-        System.out.println("My location (" + mylocation.getX() + "," + mylocation.getY() + ")");
+        System.out.println("MY LOCA - O (" + mylocation.getX() + "," + mylocation.getY() + ")");
     }
+
     public void printGoalLocation() {
-        System.out.println("Goal location (" + mygoal.getX() + "," + mygoal.getY() + ")");
+        System.out.println("MY GOAL - X (" + mygoal.getX() + "," + mygoal.getY() + ")");
     }
 
     public void printSquare(int x, int y) {
         Square s = board[x][y];
         System.out.println("Location: (" + x + "," + y + ")" + "\n" +
-                "Square ID: " + s.getId() + "\nObstacle: " + s.isObstacle() + "\nDir: " + s.getDirType() + "\n" +
-                "Reward val " + s.getRewardval() + "\nWeights " + Arrays.toString(s.getWeights()) + "\n" +
+                "Square ID: " + s.getId() + "\nObstacle: " + s.isObstacle() + "\nDir: " + ((s.isObstacle()) ? "N/A" : s.getDirType()) + "\n" +
+                "Reward val: " + s.getRewardval() + "\nWeights " + Arrays.toString(s.getWeights()) + "\n" +
                 "Eligibility val " + Arrays.toString(s.getEleg()));
     }
 
-    public void generateObstacles() {
+    private void generateObstacles() {
         Random r = new Random(); int chance;
         for (int i = 0; i < board.length; i++) {
             for (int j = 0; j < board[0].length; j++) {
@@ -314,6 +324,39 @@ public class Gridworld {
         }
     }
 
+    public static Gridworld startGridworld(Gridworld gridworld) {
+        System.out.println();
+
+        gridworld.applyArrows();
+        gridworld.printBoard();
+
+        long numActions = 0, episodes = 0;
+        long startTime = System.nanoTime();
+
+        while (gridworld.getGammaDF() > .05) {
+            episodes += gridworld.takeAction();
+            numActions++;
+            if (numActions % 1000000 == 0) {
+                System.out.println("Actions: " + numActions);
+                System.out.println("Episodes: " + episodes);
+                System.out.println("Gamma: " + gridworld.getGammaDF());
+                System.out.println();
+            }
+        }
+
+        gridworld.applyArrows();
+        gridworld.printBoard();
+
+        long elapsedTimeNano = System.nanoTime() - startTime;
+        System.out.println("Total Episodes: " + episodes + "\nTotal Actions: " + numActions + "\n" +
+                "Obstacles: " + gridworld.obstaclesActive + "\nElapsed time: " + (elapsedTimeNano / 1000000000.0) + " seconds" + "\n" +
+                "----------------------------------");
+
+        return gridworld;
+    }
+
+
+
     public static void main(String[] args) {
 
         int rowSize = 10;
@@ -322,19 +365,7 @@ public class Gridworld {
         /** Specify whether to add randomly generated obstacles. False = no obstacles, True = obstacles */
 
         Gridworld g = new Gridworld(rowSize, colSize, false);
+        g = startGridworld(g);
 
-        g.applyArrows();        // must call this before printing board to set arrows!
-        g.printBoard();
-        System.out.println();
-        long x = 0;
-        while (g.getGammaDF() > .05) {
-            g.takeAction();
-            x++;
-        }
-        g.applyArrows();
-        g.printBoard();
-        System.out.println("Episodes: " + x);
-
-        g.printSquare(0, 1);
     }
 }
