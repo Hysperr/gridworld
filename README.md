@@ -1,2 +1,3 @@
 # gridworld
-Given infinite possibilities, an AI agent learns the optimal path towards its goal from any starting point
+Given infinite possibilities, an AI agent learns the optimal path towards its goal from any starting point.
+The algorithm works by initializing a 2D grid with arbitrary weights for each possible direction for each square. We then decide to either explore or exploit within our given state Q(s,a). For each episode we take an action (we decided using explore/exploit), to observe the reward in the next state, s'. Then we choose a next action a' from the s' using a greedy policy derived from Q. In other words we make our next move based on the maximum value of the state s'. We then calculate a delta by factoring in the appropriate reward value from
