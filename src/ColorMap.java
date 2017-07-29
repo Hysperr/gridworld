@@ -1,7 +1,5 @@
-
 import javafx.application.Application;
 import javafx.scene.Scene;
-import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
@@ -25,7 +23,6 @@ public class ColorMap extends Application {
             switch (s.getDirType()) {
                 case UP:
                     p.setStyle("-fx-background-color: #a4ff1d");
-//                    p.getChildren().add(new Label(s.getDirType().toString()));
                     image = new Image("File:res/up-arrow.png");
                     imageView = new ImageView(image);
                     imageView.fitHeightProperty().bind(p.heightProperty());
@@ -34,7 +31,6 @@ public class ColorMap extends Application {
                     return;
                 case DOWN:
                     p.setStyle("-fx-background-color: #35ee15");
-//                    p.getChildren().add(new Label(s.getDirType().toString()));
                     image = new Image("File:res/down-arrow.png");
                     imageView = new ImageView(image);
                     imageView.fitHeightProperty().bind(p.heightProperty());
@@ -43,7 +39,6 @@ public class ColorMap extends Application {
                     return;
                 case LEFT:
                     p.setStyle("-fx-background-color: lawngreen");
-//                    p.getChildren().add(new Label(s.getDirType().toString()));
                     image = new Image("File:res/left-arrow.png");
                     imageView = new ImageView(image);
                     imageView.fitHeightProperty().bind(p.heightProperty());
@@ -52,7 +47,6 @@ public class ColorMap extends Application {
                     return;
                 case RIGHT:
                     p.setStyle("-fx-background-color: #c5ff14");
-//                    p.getChildren().add(new Label(s.getDirType().toString()));
                     image = new Image("File:res/right-arrow.png");
                     imageView = new ImageView(image);
                     imageView.fitHeightProperty().bind(p.heightProperty());
@@ -94,33 +88,33 @@ public class ColorMap extends Application {
         for (int i = 0; i < g.getHeightofBoard(); i++) {
             for (int j = 0; j < g.getWidthofBoard(); j++) {
                 if (i == mylocation_X && j == mylocation_Y) {
+                    // creating pane
                     Pane pane = new Pane();
                     pane.setStyle("-fx-background-color: #ffffff");
-                    pane.getChildren().add(new Label("Hey..."));
                     pane.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
-
-                    image = new Image("File:res/stickperson.png", 200, 200, false, true);
+                    // inserting image
+                    image = new Image("File:res/stickperson.png");
                     imageView = new ImageView(image);
                     imageView.setPreserveRatio(false);
                     imageView.fitHeightProperty().bind(pane.heightProperty());
                     imageView.fitWidthProperty().bind(pane.widthProperty());
                     pane.getChildren().add(imageView);
-
+                    // adding pane to gridpane
                     gridPane.add(pane, j, i);
                 }
                 else if (i == goal_X && j == goal_Y) {
+                    // creating pane
                     Pane pane = new Pane();
-                    pane.setStyle("-fx-background-color: #eb5d17");
-//                    pane.getChildren().add(new Label("Goal"));
+                    pane.setStyle("-fx-background-color: #7b3c0b");
                     pane.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
-
+                    // inserting image
                     image = new Image("File:res/treasure.png");
                     imageView = new ImageView(image);
                     imageView.setPreserveRatio(false);
                     imageView.fitHeightProperty().bind(pane.heightProperty());
                     imageView.fitWidthProperty().bind(pane.widthProperty());
                     pane.getChildren().add(imageView);
-
+                    // adding pane to gridpane
                     gridPane.add(pane, j, i);
                 }
                 else {
@@ -138,8 +132,8 @@ public class ColorMap extends Application {
 
         /** Specify whether to add randomly generated obstacles. False = no obstacles, True = obstacles */
 
-        int rowSize = 5;
-        int colSize = 5;
+        int rowSize = 10;
+        int colSize = 10;
 
         Gridworld g = new Gridworld(rowSize, colSize, true);
 

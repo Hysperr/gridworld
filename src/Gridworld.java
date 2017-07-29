@@ -9,11 +9,11 @@ public class Gridworld {
     private boolean obstaclesActive;
     private boolean isLoadComplete;
 
-    private final float terminalNum = 0.05f;    // end learning once gammaDF is below this number.
+    private final float terminalNum = 0.05f;    // end learning once gammaDF is below this number
     private final float alpha = 0.005f;
     private float gammaDF = 0.90f;              // if > .90 explore more early on, useful on larger grids
     private float lambda = 0.0000005f;          // faster / less accuracy on larger grids
-    // private float lambda = 0.00000005f;      // slower / more accuracy on larger grids
+//    private float lambda = 0.00000005f;      // slower / more accuracy on larger grids
 
 
     /**
@@ -358,7 +358,8 @@ public class Gridworld {
                         "Total Episodes: " + episodes +
                         "\nTotal Actions: " + numActions +
                         "\nObstacles: " + obstaclesActive +
-                        "\nElapsed time: " + (elapsedTimeNano / 1000000000.0) + " seconds" +
+                        "\nBoard dimensions: " + board[0].length + "x" + board.length +
+                        "\nElapsed time: " + (elapsedTimeNano / 1e9) + " seconds" +
                         "\n----------------------------------"
                         );
     }
