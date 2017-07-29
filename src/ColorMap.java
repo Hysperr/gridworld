@@ -2,6 +2,8 @@
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
 import javafx.stage.Stage;
 
@@ -9,26 +11,53 @@ import javafx.stage.Stage;
 public class ColorMap extends Application {
 
     private static void setColor(Pane p, Square s) {
+        Image image;
+        ImageView imageView;
         if (s.isObstacle()) {
-            p.setStyle("-fx-background-color: black");
+            p.setStyle("-fx-background-color: #eb5d17");
+            image = new Image("File:res/rock.png");
+            imageView = new ImageView(image);
+            imageView.fitHeightProperty().bind(p.heightProperty());
+            imageView.fitWidthProperty().bind(p.widthProperty());
+            p.getChildren().add(imageView);
         }
         else {
             switch (s.getDirType()) {
                 case UP:
-                    p.setStyle("-fx-background-color: #17ab48");
-                    p.getChildren().add(new Label(s.getDirType().toString()));
+                    p.setStyle("-fx-background-color: #a4ff1d");
+//                    p.getChildren().add(new Label(s.getDirType().toString()));
+                    image = new Image("File:res/up-arrow.png");
+                    imageView = new ImageView(image);
+                    imageView.fitHeightProperty().bind(p.heightProperty());
+                    imageView.fitWidthProperty().bind(p.widthProperty());
+                    p.getChildren().add(imageView);
                     return;
                 case DOWN:
-                    p.setStyle("-fx-background-color: darkgreen");
-                    p.getChildren().add(new Label(s.getDirType().toString()));
+                    p.setStyle("-fx-background-color: #35ee15");
+//                    p.getChildren().add(new Label(s.getDirType().toString()));
+                    image = new Image("File:res/down-arrow.png");
+                    imageView = new ImageView(image);
+                    imageView.fitHeightProperty().bind(p.heightProperty());
+                    imageView.fitWidthProperty().bind(p.widthProperty());
+                    p.getChildren().add(imageView);
                     return;
                 case LEFT:
                     p.setStyle("-fx-background-color: lawngreen");
-                    p.getChildren().add(new Label(s.getDirType().toString()));
+//                    p.getChildren().add(new Label(s.getDirType().toString()));
+                    image = new Image("File:res/left-arrow.png");
+                    imageView = new ImageView(image);
+                    imageView.fitHeightProperty().bind(p.heightProperty());
+                    imageView.fitWidthProperty().bind(p.widthProperty());
+                    p.getChildren().add(imageView);
                     return;
                 case RIGHT:
-                    p.setStyle("-fx-background-color: yellow");
-                    p.getChildren().add(new Label(s.getDirType().toString()));
+                    p.setStyle("-fx-background-color: #c5ff14");
+//                    p.getChildren().add(new Label(s.getDirType().toString()));
+                    image = new Image("File:res/right-arrow.png");
+                    imageView = new ImageView(image);
+                    imageView.fitHeightProperty().bind(p.heightProperty());
+                    imageView.fitWidthProperty().bind(p.widthProperty());
+                    p.getChildren().add(imageView);
                     return;
                 default:
                     throw new IllegalArgumentException();
@@ -37,6 +66,10 @@ public class ColorMap extends Application {
     }
 
     public static GridPane generateColorMap(Gridworld g) {
+
+        Image image;
+        ImageView imageView;
+
         GridPane gridPane = new GridPane();
         gridPane.setGridLinesVisible(true);
 
@@ -60,18 +93,34 @@ public class ColorMap extends Application {
 
         for (int i = 0; i < g.getHeightofBoard(); i++) {
             for (int j = 0; j < g.getWidthofBoard(); j++) {
-                if (i == mylocation_X && j == mylocation_Y){
+                if (i == mylocation_X && j == mylocation_Y) {
                     Pane pane = new Pane();
-                    pane.setStyle("-fx-background-color: blue");
-                    pane.getChildren().add(new Label("Me"));
+                    pane.setStyle("-fx-background-color: #ffffff");
+                    pane.getChildren().add(new Label("Hey..."));
                     pane.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
+
+                    image = new Image("File:res/stickperson.png", 200, 200, false, true);
+                    imageView = new ImageView(image);
+                    imageView.setPreserveRatio(false);
+                    imageView.fitHeightProperty().bind(pane.heightProperty());
+                    imageView.fitWidthProperty().bind(pane.widthProperty());
+                    pane.getChildren().add(imageView);
+                    
                     gridPane.add(pane, j, i);
                 }
                 else if (i == goal_X && j == goal_Y) {
                     Pane pane = new Pane();
-                    pane.setStyle("-fx-background-color: red");
-                    pane.getChildren().add(new Label("Goal"));
+                    pane.setStyle("-fx-background-color: #eb5d17");
+//                    pane.getChildren().add(new Label("Goal"));
                     pane.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
+
+                    image = new Image("File:res/treasure.png");
+                    imageView = new ImageView(image);
+                    imageView.setPreserveRatio(false);
+                    imageView.fitHeightProperty().bind(pane.heightProperty());
+                    imageView.fitWidthProperty().bind(pane.widthProperty());
+                    pane.getChildren().add(imageView);
+
                     gridPane.add(pane, j, i);
                 }
                 else {
@@ -89,8 +138,8 @@ public class ColorMap extends Application {
 
         /** Specify whether to add randomly generated obstacles. False = no obstacles, True = obstacles */
 
-        int rowSize = 10;
-        int colSize = 10;
+        int rowSize = 5;
+        int colSize = 5;
 
         Gridworld g = new Gridworld(rowSize, colSize, true);
 
