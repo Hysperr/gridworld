@@ -7,8 +7,10 @@ public class Gridworld {
     private Location mylocation;
     private Location mygoal;
     private boolean obstaclesActive;
+    private boolean isLoadComplete;
 
-    private float alpha = 0.005f;
+    private final float terminalNum = 0.05f;    // end learning once gammaDF is below this number.
+    private final float alpha = 0.005f;
     private float gammaDF = 0.90f;              // if > .90 explore more early on, useful on larger grids
     private float lambda = 0.0000005f;          // faster / less accuracy on larger grids
     // private float lambda = 0.00000005f;      // slower / more accuracy on larger grids
@@ -49,6 +51,7 @@ public class Gridworld {
     public Square[][] getBoard() { return board; }
     public Location getMylocation() { return mylocation; }
     public Location getMygoal() { return mygoal; }
+    public boolean isBoardSolved() { return gammaDF < terminalNum; }
 
     private void startMyLocation() {
         Random r = new Random();
@@ -292,10 +295,14 @@ public class Gridworld {
 
     public void printSquare(int x, int y) {
         Square s = board[x][y];
-        System.out.println("Location: (" + x + "," + y + ")" + "\n" +
-                "Square ID: " + s.getId() + "\nObstacle: " + s.isObstacle() + "\nDir: " + ((s.isObstacle()) ? "N/A" : s.getDirType()) + "\n" +
-                "Reward val: " + s.getRewardval() + "\nWeights " + Arrays.toString(s.getWeights()) + "\n" +
-                "Eligibility val " + Arrays.toString(s.getEleg()));
+        System.out.println(
+                        "Location: (" + x + "," + y + ")" +
+                        "\nSquare ID: " + s.getId() +
+                        "\nObstacle: " + s.isObstacle() +
+                        "\nDir: " + ((s.isObstacle()) ? "N/A" : s.getDirType()) +
+                        "\nReward val: " + s.getRewardval() +
+                        "\nWeights " + Arrays.toString(s.getWeights()) +
+                        "\nEligibility val " + Arrays.toString(s.getEleg()));
     }
 
     private void generateObstacles() {
@@ -324,35 +331,36 @@ public class Gridworld {
         }
     }
 
-    public static Gridworld startGridworld(Gridworld gridworld) {
+    public void startGridworld() {
         System.out.println();
-
-        gridworld.applyArrows();
-        gridworld.printBoard();
+        applyArrows();
+        printBoard();
 
         long numActions = 0, episodes = 0;
         long startTime = System.nanoTime();
 
-        while (gridworld.getGammaDF() > .05) {
-            episodes += gridworld.takeAction();
+        while (gammaDF > terminalNum) {
+            episodes += takeAction();
             numActions++;
             if (numActions % 1000000 == 0) {
                 System.out.println("Actions: " + numActions);
                 System.out.println("Episodes: " + episodes);
-                System.out.println("Gamma: " + gridworld.getGammaDF());
+                System.out.println("Gamma: " + gammaDF);
                 System.out.println();
             }
         }
 
-        gridworld.applyArrows();
-        gridworld.printBoard();
+        applyArrows();
+        printBoard();
 
         long elapsedTimeNano = System.nanoTime() - startTime;
-        System.out.println("Total Episodes: " + episodes + "\nTotal Actions: " + numActions + "\n" +
-                "Obstacles: " + gridworld.obstaclesActive + "\nElapsed time: " + (elapsedTimeNano / 1000000000.0) + " seconds" + "\n" +
-                "----------------------------------");
-
-        return gridworld;
+        System.out.println(
+                        "Total Episodes: " + episodes +
+                        "\nTotal Actions: " + numActions +
+                        "\nObstacles: " + obstaclesActive +
+                        "\nElapsed time: " + (elapsedTimeNano / 1000000000.0) + " seconds" +
+                        "\n----------------------------------"
+                        );
     }
 
 
@@ -365,7 +373,6 @@ public class Gridworld {
         /** Specify whether to add randomly generated obstacles. False = no obstacles, True = obstacles */
 
         Gridworld g = new Gridworld(rowSize, colSize, false);
-        g = startGridworld(g);
-
+        g.startGridworld();
     }
 }

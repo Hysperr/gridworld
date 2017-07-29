@@ -105,7 +105,7 @@ public class ColorMap extends Application {
                     imageView.fitHeightProperty().bind(pane.heightProperty());
                     imageView.fitWidthProperty().bind(pane.widthProperty());
                     pane.getChildren().add(imageView);
-                    
+
                     gridPane.add(pane, j, i);
                 }
                 else if (i == goal_X && j == goal_Y) {
@@ -150,7 +150,7 @@ public class ColorMap extends Application {
         primaryStage.show();
 
 
-        g = Gridworld.startGridworld(g);
+        g.startGridworld();
 
 
         gridPane = generateColorMap(g);
